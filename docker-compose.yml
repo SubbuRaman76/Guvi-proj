@@ -1,0 +1,8 @@
+---
+version: '3'
+services:
+capstonenginx:
+image: "capstonenginx"
+ports:
+- "80:80"
+---
