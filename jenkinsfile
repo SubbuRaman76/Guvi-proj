@@ -1,73 +1,41 @@
 pipeline {
-    agent any
-
-    environment {
-        DOCKER_IMAGE = "surutheenbalaji/my-app"
-        DOCKER_TAG = "latest"
+  agent any
+  stages {
+    stage('Clone Repo') {
+      steps {
+        git branch: 'dev', url: 'https://github.com/sriram-R-krishnan/devops-build.git'
+      }
     }
-
-    stages {
-        stage('Checkout') {
-            steps {
-                // Pull the latest code from GitHub
-                git branch: 'dev', credentialsId: 'github-credentials', url: 'https://github.com/surutheenbalaji/myapp.git'
-            }
-        }
-
-        stage('Build') {
-            steps {
-                // Compile/build your application if necessary
-                sh 'echo "Building the application..."'
-            }
-        }
-
-        stage('Test') {
-            steps {
-                // Run unit tests or other tests
-                sh 'echo "Running tests..."'
-            }
-        }
-
-        stage('Docker Build') {
-            steps {
-                script {
-                    // Build the Docker image
-                    sh 'docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} .'
-                }
-            }
-        }
-
-        stage('Docker Push to Dev') {
-            steps {
-                script {
-                    // Login to Docker Hub and push the image
-                    sh 'docker login -u surutheenbalaji -p $DOCKER_PASSWORD'
-                    sh 'docker push ${DOCKER_IMAGE}:${DOCKER_TAG}'
-                }
-            }
-        }
-
-        stage('Deploy to Dev') {
-            steps {
-                script {
-                    // Run deployment script or docker-compose to deploy to dev environment
-                    sh './deploy.sh'
-                }
-            }
-        }
+    stage('Build Docker Image') {
+      when {
+        branch 'dev'
+      }
+      steps {
+        sh './build.sh'
+      }
     }
-
-    post {
-        always {
-            cleanWs()  // Clean up workspace after the build
-        }
-
-        success {
-            echo 'Pipeline completed successfully'
-        }
-
-        failure {
-            echo 'Pipeline failed'
-        }
+    stage('Push to Docker Hub (Dev)') {
+      when {
+        branch 'dev'
+      }
+      steps {
+        sh 'docker tag  f957eed04e44 surutheen/latest'
+        sh 'docker push surutheen/dev:latest'
+      }
     }
+    stage('Deploy') {
+      steps {
+        sh './deploy.sh'
+      }
+    }
+    stage('Push to Docker Hub (Prod)') {
+      when {
+        branch 'main'
+      }
+      steps {
+        sh 'docker tag  f957eed04e44 surutheen/prod:latest'
+        sh 'docker push surutheen/prod:latest'
+      }
+    }
+  }
 }
