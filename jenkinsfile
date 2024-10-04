@@ -1,9 +1,9 @@
 pipeline {
   agent any
   stages {
-    stage('Clone Repo') {
+    stage('Git pull') {
       steps {
-        git branch: 'dev', url: 'https://github.com/sriram-R-krishnan/devops-build.git'
+        git url: 'https://github.com/sriram-R-krishnan/devops-build.git'branch: 'main'
       }
     }
     stage('Build Docker Image') {
