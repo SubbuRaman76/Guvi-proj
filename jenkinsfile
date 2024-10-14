@@ -1,0 +1,41 @@
+pipeline {
+  agent any
+  stages {
+    stage('Git pull') {
+      steps {
+        git url: 'https://github.com/sriram-R-krishnan/devops-build.git'branch: 'main'
+      }
+    }
+    stage('Build Docker Image') {
+      when {
+        branch 'dev'
+      }
+      steps {
+        sh './build.sh'
+      }
+    }
+    stage('Push to Docker Hub (Dev)') {
+      when {
+        branch 'dev'
+      }
+      steps {
+        sh 'docker tag  f957eed04e44 surutheen/latest'
+        sh 'docker push surutheen/dev:latest'
+      }
+    }
+    stage('Deploy') {
+      steps {
+        sh './deploy.sh'
+      }
+    }
+    stage('Push to Docker Hub (Prod)') {
+      when {
+        branch 'main'
+      }
+      steps {
+        sh 'docker tag  f957eed04e44 surutheen/prod:latest'
+        sh 'docker push surutheen/prod:latest'
+      }
+    }
+  }
+}
